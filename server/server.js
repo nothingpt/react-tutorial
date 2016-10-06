@@ -8,50 +8,49 @@ const app = express();
 // local vars
 const _PORT = 3000;
 const _URL = 'http://rfm.sapo.pt/';
-// will hold the previous played song.
 let tmpMusic = {author:'',music:''};
 
 // functions
-/**
- * [rfmScrap description]
- * gets the currently played song
- * @return a promise with a result
- */
 function rfmScrap(){
   let author=music=[];
   let result = {};
   var deferred = Q.defer();
   request(_URL, function(error, response, body){
-    const $ = cheerio.load(body);
-    author = $('marquee > .autorNoAr') || '';
-    music = $('marquee > .musicNoAr') || '';
-    result = {
-      author : author !== ''?author.text():'',
-      music : music !== '' ? music.text():''
+    if(response && response.statusCode === 200){
+      let $ = cheerio.load(body);
+      author = $('marquee > .autorNoAr');
+      music = $('marquee > .musicNoAr');
+      result = {
+        author : author.text(),
+        music : music.text()
+      }
+      deferred.resolve(result);
+    }else{
+      deferred.reject(new Error(error));
     }
-    deferred.resolve(result);
   });
+
   return deferred.promise;
 }
 
-// Interval that runs every 2 minutes and gets the music currently on air
+// Function that runs every 2 minutes and gets the music currently on air
 var interval = setInterval(()=>{
   let m = rfmScrap();
   m.then((data)=>{
-    if(data.author !== '' && data.music !== ''){
-      if(tmpMusic.author !== data.author){
-        tmpMusic = data;
-        console.log(data.author + ' - ' + data.music);
-
-        // TODO: Add new song to MongoDB
-      }
+    if(tmpMusic.author !== data.author){
+      tmpMusic = data;
+      console.log(data.author + ' - ' + data.music);
+    }else{
+      console.log('Same Music');
     }
+  }, function(error){
+    console.log('Connection error.');
   })
-}, 2*60*1000);
+}, 3*60*1000);
 
 // Routes
 app.get('/musica', (req,res)=>{
-  res.send(tmpMusic);
+  res.end(tmpMusic);
 })
 
 app.listen(_PORT, ()=>console.log(`Server connected at port ${_PORT}`));
