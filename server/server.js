@@ -23,11 +23,11 @@ function rfmScrap(){
   var deferred = Q.defer();
   request(_URL, function(error, response, body){
     const $ = cheerio.load(body);
-    author = $('marquee > .autorNoAr');
-    music = $('marquee > .musicNoAr');
+    author = $('marquee > .autorNoAr') || '';
+    music = $('marquee > .musicNoAr') || '';
     result = {
-      author : author.text(),
-      music : music.text()
+      author : author !== ''?author.text():'',
+      music : music !== '' ? music.text():''
     }
     deferred.resolve(result);
   });
@@ -38,11 +38,13 @@ function rfmScrap(){
 var interval = setInterval(()=>{
   let m = rfmScrap();
   m.then((data)=>{
-    if(tmpMusic.author !== data.author){
-      tmpMusic = data;
-      console.log(data.author + ' - ' + data.music);
+    if(data.author !== '' && data.music !== ''){
+      if(tmpMusic.author !== data.author){
+        tmpMusic = data;
+        console.log(data.author + ' - ' + data.music);
 
-      // TODO: Add new song to MongoDB
+        // TODO: Add new song to MongoDB
+      }
     }
   })
 }, 2*60*1000);
