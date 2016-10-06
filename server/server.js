@@ -8,9 +8,15 @@ const app = express();
 // local vars
 const _PORT = 3000;
 const _URL = 'http://rfm.sapo.pt/';
+// will hold the previous played song.
 let tmpMusic = {author:'',music:''};
 
 // functions
+/**
+ * [rfmScrap description]
+ * gets the currently played song
+ * @return a promise with a result
+ */
 function rfmScrap(){
   let author=music=[];
   let result = {};
@@ -28,15 +34,15 @@ function rfmScrap(){
   return deferred.promise;
 }
 
-// Function that runs every 2 minutes and gets the music currently on air
+// Interval that runs every 2 minutes and gets the music currently on air
 var interval = setInterval(()=>{
   let m = rfmScrap();
   m.then((data)=>{
     if(tmpMusic.author !== data.author){
       tmpMusic = data;
       console.log(data.author + ' - ' + data.music);
-    }else{
-      console.log('Musica repetida (' + data.author + ' - ' + data.music + ')')
+
+      // TODO: Add new song to MongoDB
     }
   })
 }, 2*60*1000);
