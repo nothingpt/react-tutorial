@@ -33,7 +33,7 @@ function rfmScrap(){
   return deferred.promise;
 }
 
-// Function that runs every 2 minutes and gets the music currently on air
+// Function that runs every 3 minutes and gets the music currently on air
 var interval = setInterval(()=>{
   let m = rfmScrap();
   m.then((data)=>{
